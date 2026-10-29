@@ -1,0 +1,442 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#ffffff">
+  <meta name="description" content="Vaie AI — ask, create, learn, and build.">
+  <title>Vaie AI</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Space+Grotesk:wght@400;500;600;700&display=swap');
+
+:root{color-scheme:light;--bg:#ffffff;--panel:#ffffff;--panel-2:#f4f3fa;--text:#242332;--muted:#747487;--line:#e5e3ed;--accent:#7563e5;--accent2:#8c7bf1;--shadow:0 12px 36px #3331}
+*{box-sizing:border-box}
+body{margin:0;background:#ffffff;color:#242332;font-family:'DM Sans',system-ui,sans-serif;min-height:100dvh}
+button,textarea{font:inherit}
+button{color:inherit;cursor:pointer}
+.app-shell{display:flex;min-height:100dvh}
+.sidebar{width:264px;flex:0 0 264px;background:#ffffff;border-right:1px solid var(--line);padding:22px 15px 14px;display:flex;flex-direction:column;gap:22px;z-index:10}
+.brand-row{display:flex;align-items:center;gap:10px;padding:0 8px}
+.brand-mark{height:34px;width:34px;border-radius:11px;background:linear-gradient(140deg,#b3a5ff,#7162e8);display:grid;place-items:center;font:700 19px 'Space Grotesk',sans-serif;color:#171622;box-shadow:0 4px 18px #9582ff33}
+.brand-mark span,.mini-mark span{color:#fff}
+.brand-name{font:600 20px 'Space Grotesk',sans-serif;letter-spacing:-.7px}.brand-name b{color:var(--accent2)}
+.icon-button{border:0;background:transparent;color:var(--muted);width:35px;height:35px;border-radius:10px;font-size:18px;display:grid;place-items:center}
+.icon-button:hover{background:var(--panel-2);color:var(--text)}
+.mobile-close{display:none;margin-left:auto}
+.new-chat{height:44px;border:1px solid #e5e3ed;background:linear-gradient(100deg,#28243a,#201f2d);border-radius:12px;text-align:left;padding:0 13px;font-weight:600;display:flex;align-items:center;gap:10px}
+.new-chat:hover{border-color:#7768bd}.plus{font-size:23px;color:var(--accent2);font-weight:400}
+.side-label{font-size:10px;font-weight:700;letter-spacing:1.6px;color:#777c8e;padding:0 10px;margin-bottom:-14px}
+.history-list{display:flex;flex-direction:column;gap:4px;overflow:auto;flex:1}
+.history-item{display:flex;align-items:center;gap:9px;border:0;background:transparent;text-align:left;border-radius:9px;padding:10px;color:#bfc2cf;font-size:13px;min-width:0}
+.history-item:hover,.history-item.active{background:#242632;color:#fff}.history-item .history-title{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1}.history-item .history-glyph{color:#858a9e;font-size:16px}
+.sidebar-bottom{border-top:1px solid var(--line);padding:15px 3px 0;display:flex;align-items:center;gap:10px}
+.profile-dot{width:34px;height:34px;border-radius:50%;background:#39334e;color:#d9d0ff;display:grid;place-items:center;font-weight:700}
+.profile-copy{display:flex;flex-direction:column;gap:3px;flex:1}.profile-copy strong{font-size:12px}.profile-copy small{font-size:10px;color:var(--muted)}
+.main-panel{flex:1;min-width:0;display:flex;flex-direction:column;min-height:100dvh}
+.topbar{height:67px;border-bottom:1px solid #252733;display:flex;align-items:center;justify-content:space-between;padding:0 30px;gap:12px}
+.top-brand{font:600 16px 'Space Grotesk',sans-serif;display:flex;align-items:center;gap:9px}.mini-mark{width:25px;height:25px;border-radius:8px;background:linear-gradient(140deg,#b3a5ff,#7162e8);color:#191624;display:grid;place-items:center;font-weight:700}
+.top-actions{display:flex;align-items:center;gap:8px;color:var(--muted);font-size:12px}.status-dot{width:7px;height:7px;border-radius:50%;background:#6fd5a4;box-shadow:0 0 9px #6fd5a455}.install-button{border:1px solid #47405f;background:#28243a;border-radius:9px;padding:8px 12px;margin-left:8px;font-size:12px}
+.menu-toggle{display:none}
+.chat-area{flex:1;width:100%;max-width:930px;margin:0 auto;padding:30px 34px 12px;display:flex;flex-direction:column;min-height:0}
+.welcome{margin:auto 0;display:flex;flex-direction:column;align-items:center;text-align:center;padding:24px 0 38px}
+.welcome-orb{width:66px;height:66px;border-radius:22px;display:grid;place-items:center;position:relative;background:radial-gradient(circle at 30% 20%,#c4b9ff,#7160db 72%);box-shadow:0 0 55px #8471ff22;margin-bottom:21px;font:700 33px 'Space Grotesk',sans-serif;color:#171522;transform:rotate(-4deg)}
+.welcome-orb i{position:absolute;right:9px;top:5px;font-style:normal;color:white;font-size:18px}
+.eyebrow{font-size:10px;letter-spacing:2px;font-weight:700;color:#a79bed;margin:0 0 12px}
+h1{font:600 clamp(32px,4vw,47px)/1.13 'Space Grotesk',sans-serif;letter-spacing:-1.9px;margin:0}
+h1 span{background:linear-gradient(90deg,#b6aaff,#8c7bf1);background-clip:text;color:transparent}
+.welcome-copy{font-size:14px;color:var(--muted);margin:15px 0 28px}
+.suggestions{width:min(100%,610px);display:grid;grid-template-columns:1fr 1fr;gap:10px;text-align:left}
+.suggestion{display:flex;align-items:center;gap:11px;padding:13px 12px;border:1px solid #2c2e3b;background:#181a24;border-radius:13px;min-width:0;text-align:left;transition:.15s}
+.suggestion:hover{background:#20212e;border-color:#62578e;transform:translateY(-1px)}
+.suggestion-icon{width:35px;height:35px;flex:0 0 35px;border-radius:10px;display:grid;place-items:center;font-size:18px}
+.purple{background:#302a4c;color:#b9aaff}.orange{background:#3e3028;color:#ffbf89}.green{background:#243a35;color:#8be0bf}.blue{background:#253447;color:#8bc8ff}
+.suggestion b,.suggestion small{display:block}.suggestion b{font-size:12px;font-weight:600;margin-bottom:4px}.suggestion small{font-size:10px;color:var(--muted);line-height:1.35}.arrow{margin-left:auto;color:#767b8e;font-size:15px}
+.messages{display:flex;flex-direction:column;gap:24px;padding:15px 0 25px}
+.message{display:flex;gap:12px;align-items:flex-start;max-width:100%}
+.avatar{height:30px;width:30px;border-radius:10px;display:grid;place-items:center;flex:0 0 30px;font:700 13px 'Space Grotesk',sans-serif}
+.message.user .avatar{background:#333044;color:#d9d0ff}.message.assistant .avatar{background:linear-gradient(140deg,#b3a5ff,#7162e8);color:#171522}
+.message-content{font-size:14px;line-height:1.75;white-space:pre-wrap;overflow-wrap:anywhere;padding-top:2px;min-width:0}.message.user .message-content{background:#222430;border:1px solid #2c2e3b;border-radius:4px 13px 13px 13px;padding:10px 14px}
+.message.assistant .message-content{flex:1}
+.message-content code{font-family:ui-monospace,SFMono-Regular,Consolas,monospace;background:#242633;border:1px solid #343746;padding:2px 5px;border-radius:5px;font-size:.9em}
+.message-content pre{white-space:pre;overflow:auto;background:#0d0e13;border:1px solid #303241;border-radius:10px;padding:15px;font-size:12px;line-height:1.55}
+.message-content pre code{border:0;background:transparent;padding:0}
+.typing{display:flex;gap:5px;padding:11px 2px}.typing span{height:6px;width:6px;border-radius:50%;background:#a79bed;animation:bounce 1s infinite ease-in-out}.typing span:nth-child(2){animation-delay:.15s}.typing span:nth-child(3){animation-delay:.3s}
+@keyframes bounce{0%,60%,100%{transform:translateY(0);opacity:.45}30%{transform:translateY(-5px);opacity:1}}
+.composer-wrap{width:100%;max-width:850px;margin:0 auto;padding:8px 30px 18px}
+.composer{background:#1b1d27;border:1px solid #343644;border-radius:17px;padding:13px 13px 10px;box-shadow:var(--shadow);transition:border-color .15s}
+.composer:focus-within{border-color:#665a9a}
+textarea{display:block;width:100%;resize:none;border:0;outline:0;background:transparent;color:var(--text);font-size:14px;line-height:1.5;max-height:180px;min-height:28px;padding:1px 4px 9px}
+textarea::placeholder{color:#777c8e}
+.composer-bottom{display:flex;align-items:center;justify-content:space-between;gap:10px}.composer-hint{font-size:10px;color:#777c8e}.sparkle{color:#b4a7ff;margin-right:5px}
+.send-button{border:0;border-radius:10px;width:34px;height:34px;background:linear-gradient(140deg,#b6aaff,#8371ed);color:#171522;font-size:24px;font-weight:600;display:grid;place-items:center}.send-button:disabled{opacity:.45;cursor:not-allowed}
+.disclaimer{text-align:center;color:#6f7383;font-size:10px;margin:10px 0 0}
+.toast{position:fixed;bottom:25px;left:50%;transform:translate(-50%,20px);opacity:0;pointer-events:none;z-index:30;background:#30313f;border:1px solid #454657;border-radius:10px;padding:11px 15px;font-size:12px;max-width:90vw;transition:.2s}.toast.show{opacity:1;transform:translate(-50%,0)}
+.mobile-scrim{display:none}
+body.light{color-scheme:light;--bg:#f7f7fb;--panel:#fff;--panel-2:#f0eff7;--text:#242332;--muted:#747487;--line:#e5e3ed;--shadow:0 12px 36px #3331}
+body.light .sidebar{background:#fff}body.light .topbar{border-color:#e5e3ed}body.light .new-chat{background:#f3f0ff;border-color:#ded8f7}body.light .history-item:hover,body.light .history-item.active{background:#f0eef8;color:#292637}body.light .suggestion{background:#fff;border-color:#e5e3ed}body.light .suggestion:hover{background:#f7f5ff}body.light .message.user .message-content{background:#efedf7;border-color:#e4e0f1}body.light .composer{background:#fff;border-color:#dedce8}body.light .message-content code{background:#f0eef7;border-color:#e0ddec}body.light .message-content pre{background:#f2f1f7;color:#242332;border-color:#e0ddec}
+@media(max-width:760px){.sidebar{position:fixed;left:0;top:0;bottom:0;width:min(290px,85vw);transform:translateX(-105%);transition:transform .22s;box-shadow:var(--shadow)}.sidebar.open{transform:translateX(0)}.mobile-close{display:grid}.mobile-scrim.show{display:block;position:fixed;inset:0;background:#0008;z-index:9}.menu-toggle{display:grid}.topbar{height:58px;padding:0 14px}.top-brand{margin-right:auto}.top-actions{gap:5px}.status-text{display:none}.chat-area{padding:15px 16px 5px}.welcome{padding:24px 0}.welcome-orb{width:57px;height:57px;border-radius:19px;font-size:29px;margin-bottom:17px}h1{font-size:34px}.welcome-copy{font-size:12px;max-width:270px;line-height:1.6;margin:12px 0 22px}.suggestions{grid-template-columns:1fr;gap:8px;max-width:420px}.suggestion{padding:10px}.suggestion-icon{width:32px;height:32px;flex-basis:32px}.composer-wrap{padding:7px 12px 12px}.composer{border-radius:15px;padding:10px}.composer-hint{font-size:9px}.disclaimer{font-size:9px}.messages{gap:18px}.message-content{font-size:13px}.desktop-break{display:none}}
+@media(max-height:730px) and (min-width:761px){.welcome{padding:10px 0}.welcome-orb{width:52px;height:52px;margin-bottom:12px}.welcome-copy{margin:10px 0 18px}.suggestion{padding:10px}}
+
+
+/* Answer-page mode: after a search, show only the full-page answer view. */
+body.chat-active .sidebar{display:none!important}
+body.chat-active .app-shell{display:flex;min-height:100dvh;height:100dvh;width:100%;}
+body.chat-active .main-panel{height:100dvh;min-height:0;width:100%;}
+body.chat-active .topbar{display:none!important}
+body.chat-active .chat-area{width:100%;max-width:none;flex:1;min-height:0;overflow-y:auto;padding:clamp(22px,4vh,44px) clamp(18px,9vw,150px) 12px;}
+body.chat-active .welcome{display:none!important}
+body.chat-active .messages{width:100%;max-width:1050px;margin:0 auto;gap:22px;padding:8px 0 28px;}
+body.chat-active .message{width:100%;}
+body.chat-active .message.user{margin:0 0 8px;padding:0 0 15px;border-bottom:1px solid #e9e7ef;}
+body.chat-active .message.user .avatar{display:none}
+body.chat-active .message.user .message-content{background:transparent!important;border:0!important;border-radius:0!important;padding:0!important;color:#242332!important;font:600 clamp(23px,3vw,34px)/1.25 'Space Grotesk',sans-serif;}
+body.chat-active .message.assistant .avatar{width:34px;height:34px;flex-basis:34px;border-radius:11px;}
+body.chat-active .message.assistant .message-content{font-size:16px;line-height:1.85;color:#292837;}
+body.chat-active .composer-wrap{flex:0 0 auto;width:100%;max-width:none;padding:10px clamp(16px,8vw,120px) calc(12px + env(safe-area-inset-bottom));border-top:1px solid #eeeef3;background:#fff;}
+body.chat-active .composer{width:100%;max-width:1050px;margin:0 auto;background:#fff;border-color:#dedce8;}
+body.chat-active .disclaimer{margin-top:8px}
+body.chat-active .mobile-scrim{display:none!important}
+@media(max-width:760px){body.chat-active .chat-area{padding:20px 18px 8px}body.chat-active .composer-wrap{padding:8px 12px calc(10px + env(safe-area-inset-bottom))}body.chat-active .message.assistant .message-content{font-size:15px;line-height:1.75}body.chat-active .message.user .message-content{font-size:25px}}
+
+/* Vaie AI light appearance */
+.sidebar{background:#ffffff;border-right-color:#e5e3ed}
+.topbar{border-bottom-color:#e5e3ed}
+.new-chat{background:#f3f0ff;border-color:#ded8f7;color:#292637}
+.history-item{color:#555568}
+.history-item:hover,.history-item.active{background:#f0eef8;color:#292637}
+.profile-dot{background:#eeeaff;color:#7563e5}
+.brand-mark,.mini-mark{color:#ffffff}
+.brand-mark span,.mini-mark span{color:#ffffff}
+.welcome-orb{color:#ffffff}
+.suggestion{background:#ffffff;border-color:#e5e3ed;color:#242332}
+.suggestion:hover{background:#f7f5ff;border-color:#cfc7f4}
+.suggestion small{color:#747487}
+.composer{background:#ffffff;border-color:#dedce8;box-shadow:0 12px 36px #3331}
+textarea{color:#242332}
+textarea::placeholder{color:#858599}
+.composer-hint,.disclaimer{color:#747487}
+.message.user .message-content{background:#efedf7;border-color:#e4e0f1;color:#242332}
+.message-content code{background:#f0eef7;border-color:#e0ddec;color:#242332}
+.message-content pre{background:#f2f1f7;color:#242332;border-color:#e0ddec}
+.top-actions{color:#747487}
+.icon-button:hover{background:#f0eef8;color:#292637}
+.install-button{border-color:#ded8f7;background:#f3f0ff;color:#292637}
+.toast{background:#ffffff;color:#242332;border-color:#e5e3ed}
+body.light{color-scheme:light}
+
+
+/* Make every former dark-purple/dark-mode surface white or light */
+body,.app-shell,.main-panel,.sidebar,.topbar,.chat-area,.composer-wrap{background:#fff!important;color:#242332}
+.side-label,.history-item,.composer-hint,.disclaimer,.top-actions{color:#747487}
+.avatar{background:#eeeaff!important;color:#7563e5!important}
+.message.assistant .avatar{background:#7563e5!important;color:#fff!important}
+.brand-name{color:#242332}
+.welcome-copy{color:#747487}
+.new-chat{background:#f3f0ff!important;color:#292637!important;border-color:#ded8f7!important}
+.history-item{color:#555568!important}
+.history-item:hover,.history-item.active{background:#f0eef8!important;color:#292637!important}
+.topbar{border-bottom-color:#e5e3ed!important}
+.suggestion{background:#fff!important;border-color:#e5e3ed!important;color:#242332!important}
+.suggestion:hover{background:#f7f5ff!important;border-color:#cfc7f4!important}
+.message.user .avatar{background:#eeeaff!important;color:#7563e5!important}
+.message.user .message-content{background:#efedf7!important;border-color:#e4e0f1!important;color:#242332!important}
+.message-content code{background:#f0eef7!important;border-color:#e0ddec!important;color:#242332!important}
+.message-content pre{background:#f2f1f7!important;border-color:#e0ddec!important;color:#242332!important}
+.composer{background:#fff!important;border-color:#dedce8!important}
+.install-button{background:#f3f0ff!important;border-color:#ded8f7!important;color:#292637!important}
+.toast{background:#fff!important;border-color:#e5e3ed!important;color:#242332!important}
+.profile-dot{background:#eeeaff!important;color:#7563e5!important}
+
+</style>
+</head>
+<body>
+  <div class="app-shell">
+    <aside class="sidebar" id="sidebar">
+      <div class="brand-row">
+        <div class="brand-mark" aria-hidden="true">V<span>•</span></div>
+        <div class="brand-name">Vaie <b>AI</b></div>
+        <button class="icon-button mobile-close" id="closeSidebar" aria-label="Close menu">×</button>
+      </div>
+      <button class="new-chat" id="newChat"><span class="plus">＋</span> New chat</button>
+      <div class="side-label">YOUR SPACE</div>
+      <nav class="history-list" id="historyList" aria-label="Chat history"></nav>
+      <div class="sidebar-bottom">
+        <div class="profile-dot">V</div>
+        <div class="profile-copy"><strong>Vaie AI</strong><small>Your ideas, in one place</small></div>
+        <button class="icon-button" id="themeToggle" aria-label="Toggle color theme" title="Toggle theme">◐</button>
+      </div>
+    </aside>
+
+    <main class="main-panel">
+      <header class="topbar">
+        <button class="icon-button menu-toggle" id="openSidebar" aria-label="Open menu">☰</button>
+        <div class="top-brand"><span class="mini-mark">V<span>•</span></span> Vaie AI</div>
+        <div class="top-actions">
+          <span class="status-dot"></span><span class="status-text">AI assistant</span>
+          <button class="install-button" id="installButton" hidden>Install app</button>
+        </div>
+      </header>
+
+      <section class="chat-area" id="chatArea" aria-live="polite">
+        <div class="welcome" id="welcome">
+          <div class="welcome-orb"><span>V</span><i>•</i></div>
+          <p class="eyebrow">YOUR PERSONAL AI SPACE</p>
+          <h1>What can we <span>create</span><br class="desktop-break"> today?</h1>
+          <p class="welcome-copy">Ask anything. Explore an idea. Build something amazing.</p>
+          <div class="suggestions">
+            <button class="suggestion" data-prompt="Help me build a website step by step."><span class="suggestion-icon purple">⌘</span><span><b>Build a website</b><small>Plan and code your next idea</small></span><span class="arrow">↗</span></button>
+            <button class="suggestion" data-prompt="Help me learn a difficult topic with simple examples."><span class="suggestion-icon orange">✳</span><span><b>Learn something</b><small>Understand it one step at a time</small></span><span class="arrow">↗</span></button>
+            <button class="suggestion" data-prompt="Help me create a game idea and a development plan."><span class="suggestion-icon green">▱</span><span><b>Create a game</b><small>Turn an idea into a project</small></span><span class="arrow">↗</span></button>
+            <button class="suggestion" data-prompt="Give me creative ideas for a project I can start today."><span class="suggestion-icon blue">✧</span><span><b>Brainstorm ideas</b><small>Find a fresh direction</small></span><span class="arrow">↗</span></button>
+          </div>
+        </div>
+        <div class="messages" id="messages"></div>
+      </section>
+
+      <footer class="composer-wrap">
+        <form class="composer" id="chatForm">
+          <textarea id="messageInput" rows="1" maxlength="12000" placeholder="Message Vaie AI..." aria-label="Message Vaie AI"></textarea>
+          <div class="composer-bottom">
+            <span class="composer-hint"><span class="sparkle">✦</span> Curious minds build great things</span>
+            <button class="send-button" id="sendButton" type="submit" aria-label="Send message"><span>↑</span></button>
+          </div>
+        </form>
+        <p class="disclaimer">Vaie AI can make mistakes. Check important information.</p>
+      </footer>
+    </main>
+  </div>
+  <div class="mobile-scrim" id="mobileScrim"></div>
+  <div class="toast" id="toast" role="status"></div>
+<script>
+const $ = (id) => document.getElementById(id);
+const STORE_KEY = "vaie-ai-chats-v1";
+// After deploying the backend, replace this with its URL, e.g. https://vaie-ai-api.onrender.com.
+// Keep empty only when frontend and backend are served from the same origin.
+const API_BASE_URL = ""; // Paste your deployed backend URL here after deployment.
+let chats = loadChats();
+let activeChatId = null;
+let busy = false;
+let installPrompt = null;
+
+function loadChats() {
+  try {
+    const saved = JSON.parse(localStorage.getItem(STORE_KEY) || "[]");
+    return Array.isArray(saved) ? saved : [];
+  } catch { return []; }
+}
+function persist() {
+  try { localStorage.setItem(STORE_KEY, JSON.stringify(chats)); }
+  catch { showToast("Browser storage is full. Older chats may not save."); }
+}
+function currentChat() { return chats.find(c => c.id === activeChatId) || null; }
+function makeId() { return Date.now().toString(36) + Math.random().toString(36).slice(2, 7); }
+function escapeHtml(s) {
+  return String(s).replace(/[&<>"']/g, ch => ({ "&":"&amp;", "<":"&lt;", ">":"&gt;", '"':"&quot;", "'":"&#39;" }[ch]));
+}
+// Small safe formatter: escapes HTML first, then adds basic code blocks and line breaks.
+function formatText(raw) {
+  let s = escapeHtml(raw);
+  const blocks = [];
+  s = s.replace(/```([a-zA-Z0-9_-]*)\n?([\s\S]*?)```/g, (_, lang, code) => {
+    const token = `@@CODEBLOCK${blocks.length}@@`;
+    blocks.push(`<pre><code>${code.trim()}</code></pre>`);
+    return token;
+  });
+  s = s.replace(/`([^`\n]+)`/g, "<code>$1</code>");
+  s = s.replace(/\*\*([^*\n]+)\*\*/g, "<strong>$1</strong>");
+  s = s.replace(/\*([^*\n]+)\*/g, "<em>$1</em>");
+  s = s.replace(/\n/g, "<br>");
+  return s.replace(/@@CODEBLOCK(\d+)@@/g, (_, i) => blocks[Number(i)]);
+}
+function renderHistory() {
+  const list = $("historyList");
+  list.innerHTML = "";
+  if (!chats.length) {
+    const empty = document.createElement("div");
+    empty.className = "history-item";
+    empty.style.opacity = ".6";
+    empty.textContent = "Your chats will appear here";
+    list.appendChild(empty);
+    return;
+  }
+  chats.slice().reverse().forEach(chat => {
+    const button = document.createElement("button");
+    button.className = "history-item" + (chat.id === activeChatId ? " active" : "");
+    button.innerHTML = `<span class="history-glyph">◷</span><span class="history-title"></span>`;
+    button.querySelector(".history-title").textContent = chat.title || "New chat";
+    button.title = chat.title || "New chat";
+    button.addEventListener("click", () => { activeChatId = chat.id; renderChat(); if (chat.messages.length) document.body.classList.add("chat-active"); closeSidebar(); });
+    list.appendChild(button);
+  });
+}
+function renderChat() {
+  const chat = currentChat();
+  const hasMessages = Boolean(chat && chat.messages.length);
+  document.body.classList.toggle("chat-active", hasMessages);
+  $("welcome").hidden = hasMessages;
+  $("messages").innerHTML = "";
+  if (chat) chat.messages.forEach(m => addMessageElement(m.role, m.content));
+  renderHistory();
+  scrollBottom();
+}
+function addMessageElement(role, content) {
+  const row = document.createElement("article");
+  row.className = `message ${role}`;
+  const avatar = document.createElement("div");
+  avatar.className = "avatar";
+  avatar.textContent = role === "assistant" ? "V" : "Y";
+  avatar.setAttribute("aria-hidden", "true");
+  const body = document.createElement("div");
+  body.className = "message-content";
+  body.innerHTML = formatText(content);
+  row.append(avatar, body);
+  $("messages").appendChild(row);
+  return row;
+}
+function scrollBottom() {
+  requestAnimationFrame(() => {
+    const area = $("chatArea");
+    area.scrollTop = area.scrollHeight;
+    window.scrollTo(0, document.body.scrollHeight);
+  });
+}
+function showToast(message) {
+  const toast = $("toast");
+  toast.textContent = message;
+  toast.classList.add("show");
+  clearTimeout(showToast.timer);
+  showToast.timer = setTimeout(() => toast.classList.remove("show"), 3800);
+}
+function newChat() {
+  document.body.classList.remove("chat-active");
+  activeChatId = null;
+  $("messages").innerHTML = "";
+  $("welcome").hidden = false;
+  renderHistory();
+  $("messageInput").focus();
+  closeSidebar();
+}
+function ensureChat(firstMessage) {
+  let chat = currentChat();
+  if (!chat) {
+    chat = { id: makeId(), title: firstMessage.slice(0, 42) + (firstMessage.length > 42 ? "…" : ""), messages: [], updatedAt: Date.now() };
+    chats.push(chat);
+    activeChatId = chat.id;
+  }
+  return chat;
+}
+function setBusy(value) {
+  busy = value;
+  $("sendButton").disabled = value;
+  $("messageInput").disabled = value;
+}
+async function sendMessage(text) {
+  const content = text.trim();
+  if (!content || busy) return;
+  document.body.classList.add("chat-active");
+  const chat = ensureChat(content);
+  chat.messages.push({ role: "user", content });
+  chat.updatedAt = Date.now();
+  $("welcome").hidden = true;
+  addMessageElement("user", content);
+  $("messageInput").value = "";
+  resizeInput();
+  persist(); renderHistory(); setBusy(true);
+
+  const pending = document.createElement("article");
+  pending.className = "message assistant";
+  pending.id = "pendingReply";
+  pending.innerHTML = '<div class="avatar">V</div><div class="message-content"><div class="typing" aria-label="Vaie AI is thinking"><span></span><span></span><span></span></div></div>';
+  $("messages").appendChild(pending);
+  scrollBottom();
+
+  try {
+    const apiBase = API_BASE_URL.trim().replace(/\/$/, "");
+    if (!apiBase || apiBase.includes("YOUR-BACKEND-SERVICE")) {
+      throw new Error("Vaie AI is not connected to its answer service yet. Deploy the backend, then paste its URL into API_BASE_URL in index.html. Opening this file directly only previews the design.");
+    }
+    const response = await fetch(`${apiBase}/api/chat`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ messages: chat.messages.slice(-20).map(m => ({ role: m.role, content: m.content })) })
+    });
+    const data = await response.json().catch(() => ({}));
+    if (!response.ok) throw new Error(data.error || `Request failed (${response.status}).`);
+    if (!data.answer) throw new Error("Vaie AI did not return an answer. Try again.");
+    chat.messages.push({ role: "assistant", content: data.answer });
+    chat.updatedAt = Date.now();
+    persist();
+    pending.remove();
+    addMessageElement("assistant", data.answer);
+  } catch (error) {
+    pending.remove();
+    let message = error.message || "Something went wrong. Please try again.";
+    if (String(message).includes("405") || String(message).includes("404")) {
+      message = "The backend URL or route is incorrect. Check that API_BASE_URL points to your deployed backend, and that it supports POST /api/chat.";
+    } else if (String(message).includes("Failed to fetch") || String(message).includes("NetworkError")) {
+      message = "Vaie AI could not reach the backend. Check that it is deployed, awake, and allows your GitHub Pages website in ALLOWED_ORIGINS.";
+    }
+    addMessageElement("assistant", `I couldn't complete that request. ${message}`);
+  } finally {
+    setBusy(false);
+    $("messageInput").focus();
+    renderHistory();
+    scrollBottom();
+  }
+}
+function resizeInput() {
+  const input = $("messageInput");
+  input.style.height = "auto";
+  input.style.height = Math.min(input.scrollHeight, 180) + "px";
+}
+function closeSidebar() {
+  $("sidebar").classList.remove("open");
+  $("mobileScrim").classList.remove("show");
+}
+$("newChat").addEventListener("click", newChat);
+$("chatForm").addEventListener("submit", event => {
+  event.preventDefault();
+  sendMessage($("messageInput").value);
+});
+$("messageInput").addEventListener("input", resizeInput);
+$("messageInput").addEventListener("keydown", event => {
+  if (event.key === "Enter" && !event.shiftKey) {
+    event.preventDefault();
+    $("chatForm").requestSubmit();
+  }
+});
+document.querySelectorAll("[data-prompt]").forEach(button => {
+  button.addEventListener("click", () => sendMessage(button.dataset.prompt));
+});
+$("openSidebar").addEventListener("click", () => {
+  $("sidebar").classList.add("open");
+  $("mobileScrim").classList.add("show");
+});
+$("closeSidebar").addEventListener("click", closeSidebar);
+$("mobileScrim").addEventListener("click", closeSidebar);
+$("themeToggle").addEventListener("click", () => {
+  showToast("Vaie AI is using the white theme.");
+});
+
+window.addEventListener("beforeinstallprompt", event => {
+  event.preventDefault();
+  installPrompt = event;
+  $("installButton").hidden = false;
+});
+$("installButton").addEventListener("click", async () => {
+  if (!installPrompt) {
+    showToast("To install, open your browser menu and choose Install app or Add to Home screen.");
+    return;
+  }
+  installPrompt.prompt();
+  await installPrompt.userChoice;
+  installPrompt = null;
+  $("installButton").hidden = true;
+});
+window.addEventListener("appinstalled", () => showToast("Vaie AI has been installed."));
+// Service worker disabled for the standalone HTML preview.
+renderChat();
+
+</script>
+</body>
+</html>
