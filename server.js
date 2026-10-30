@@ -2,8 +2,8 @@
 const http = require('node:http');
 
 const PORT = Number(process.env.PORT || 3000);
-const OPENAI_API_KEY = (process.env.OPENAI_API_KEY || '').trim();
-const OPENAI_MODEL = (process.env.OPENAI_MODEL || 'gpt-4o-mini').trim();
+const GEMINI_API_KEY = (process.env.GEMINI_API_KEY || '').trim();
+const GEMINI_MODEL = (process.env.GEMINI_MODEL || 'gemini-2.5-flash').trim();
 
 const ALLOWED_ORIGINS = (process.env.ALLOWED_ORIGINS || '*')
   .split(',')
@@ -12,6 +12,7 @@ const ALLOWED_ORIGINS = (process.env.ALLOWED_ORIGINS || '*')
 
 const server = http.createServer(async (req, res) => {
   const origin = req.headers.origin || '';
+
   const originAllowed =
     ALLOWED_ORIGINS.includes('*') ||
     ALLOWED_ORIGINS.includes(origin);
@@ -44,9 +45,9 @@ const server = http.createServer(async (req, res) => {
   if (req.method === 'GET' && req.url === '/api/health') {
     return send(res, 200, {
       status: 'ok',
-      service: 'Vaie AI backend',
-      model: OPENAI_MODEL,
-      configured: Boolean(OPENAI_API_KEY)
+      service: 'Vaie AI Gemini backend',
+      model: GEMINI_MODEL,
+      configured: Boolean(GEMINI_API_KEY)
     });
   }
 
@@ -56,24 +57,15 @@ const server = http.createServer(async (req, res) => {
     });
   }
 
-  if (!OPENAI_API_KEY) {
+  if (!GEMINI_API_KEY) {
     return send(res, 503, {
-      error: 'The backend is missing OPENAI_API_KEY. Add it in Render Environment settings.'
+      error: 'Missing GEMINI_API_KEY. Add your Google AI Studio key in Render Environment settings.'
     });
   }
 
-  // Diagnose invalid characters without exposing secret values.
-  if (/[^\x00-\x7F]/.test(OPENAI_API_KEY)) {
-    console.error('OPENAI_API_KEY contains non-ASCII characters.');
+  if (/[^\x00-\x7F]/.test(GEMINI_API_KEY + GEMINI_MODEL)) {
     return send(res, 500, {
-      error: 'The API key in Render contains invalid characters. Re-enter your API key in Environment settings.'
-    });
-  }
-
-  if (/[^\x00-\x7F]/.test(OPENAI_MODEL)) {
-    console.error('OPENAI_MODEL contains non-ASCII characters.');
-    return send(res, 500, {
-      error: 'The model setting contains invalid characters. Remove OPENAI_MODEL from Render Environment to use the default model.'
+      error: 'The Gemini key or model contains invalid characters. Check Render Environment settings.'
     });
   }
 
@@ -98,8 +90,8 @@ const server = http.createServer(async (req, res) => {
       }
 
       return {
-        role: item.role,
-        content: item.content.slice(0, 12_000)
+        role: item.role === 'assistant' ? 'model' : 'user',
+        parts: [{ text: item.content.slice(0, 12000) }]
       };
     });
 
@@ -109,62 +101,59 @@ const server = http.createServer(async (req, res) => {
       });
     }
 
-    const upstream = await fetch(
-      'https://api.openai.com/v1/chat/completions',
+    const response = await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(GEMINI_MODEL)}:generateContent`,
       {
         method: 'POST',
         headers: {
-          Authorization: `Bearer ${OPENAI_API_KEY}`,
-          'Content-Type': 'application/json'
+          'Content-Type': 'application/json',
+          'x-goog-api-key': GEMINI_API_KEY
         },
         body: JSON.stringify({
-          model: OPENAI_MODEL,
-          messages: [
-            {
-              role: 'system',
-              content:
-                'You are Vaie AI, a helpful, clear, and honest assistant. If you are uncertain, say so. Never claim to have searched the web or accessed files unless a tool actually did so.'
-            },
-            ...messages
-          ],
-          temperature: 0.7,
-          max_tokens: 1200
+          systemInstruction: {
+            parts: [{
+              text: 'You are Vaie AI, a helpful, clear, and honest assistant. If you are uncertain, say so. Never claim to have searched the web or accessed files unless a tool actually did so.'
+            }]
+          },
+          contents: messages,
+          generationConfig: {
+            temperature: 0.7,
+            maxOutputTokens: 1200
+          }
         }),
-        signal: AbortSignal.timeout(60_000)
+        signal: AbortSignal.timeout(60000)
       }
     );
 
-    const result = await upstream.json().catch(() => ({}));
+    const result = await response.json().catch(() => ({}));
 
-    if (!upstream.ok) {
+    if (!response.ok) {
       const message =
         result?.error?.message ||
-        `AI provider returned HTTP ${upstream.status}.`;
+        `Google Gemini returned HTTP ${response.status}.`;
 
-      console.error('OpenAI request failed with HTTP', upstream.status);
+      console.error('Gemini request failed:', response.status, message);
 
-      const status =
-        upstream.status === 429
-          ? 429
-          : upstream.status >= 500
-            ? 502
-            : 400;
-
-      return send(res, status, { error: message });
+      return send(res, response.status === 429 ? 429 : 502, {
+        error: message
+      });
     }
 
-    const answer = result?.choices?.[0]?.message?.content;
+    const answer = result?.candidates?.[0]?.content?.parts
+      ?.map(part => part.text || '')
+      .join('');
 
     if (typeof answer !== 'string' || !answer.trim()) {
-      console.error('OpenAI returned an empty answer.');
+      console.error('Gemini returned no text answer.');
       return send(res, 502, {
-        error: 'The AI provider returned an empty answer.'
+        error: 'Gemini returned an empty answer.'
       });
     }
 
     return send(res, 200, {
       answer: answer.trim()
     });
+
   } catch (error) {
     if (error.message === 'Request body too large') {
       return send(res, 413, { error: 'Request is too large.' });
@@ -179,7 +168,7 @@ const server = http.createServer(async (req, res) => {
       error.name === 'TimeoutError'
     ) {
       return send(res, 504, {
-        error: 'The AI service took too long. Please try again.'
+        error: 'Gemini took too long to respond. Please try again.'
       });
     }
 
@@ -187,14 +176,10 @@ const server = http.createServer(async (req, res) => {
       return send(res, 400, { error: error.message });
     }
 
-    // Log the stack for diagnosis, but never log the API key.
-    console.error(
-      'Chat request failed:',
-      error.stack || error.message
-    );
+    console.error('Chat request failed:', error.stack || error.message);
 
     return send(res, 500, {
-      error: 'The server could not complete the request. Check the backend logs.'
+      error: 'Vaie AI could not complete the request. Check backend logs.'
     });
   }
 });
@@ -238,5 +223,6 @@ function send(res, status, data) {
 }
 
 server.listen(PORT, '0.0.0.0', () => {
-  console.log(`Vaie AI backend listening on port ${PORT}`);
+  console.log(`Vaie AI Gemini backend listening on port ${PORT}`);
 });
+
